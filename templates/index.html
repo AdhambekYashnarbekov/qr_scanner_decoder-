@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7fb" />
+    <meta
+      name="description"
+      content="Create custom QR codes and decode QR code images online for free."
+    />
+    <title>QR Code Studio</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a href="/" class="brand">
+          <span class="brand-icon" aria-hidden="true">▦</span>
+          <span>QR Code Studio</span>
+        </a>
+        <span class="header-label">Free QR Tools</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="eyebrow">SIMPLE · FAST · FREE</p>
+        <h1>Your QR codes,<br />made easy.</h1>
+        <p class="hero-description">
+          Generate custom QR codes in seconds or upload an image to discover
+          what a QR code contains.
+        </p>
+      </section>
+
+      <div class="tools-grid">
+        <!-- QR code generator -->
+        <section class="tool-card" id="generator">
+          <div class="card-heading">
+            <div>
+              <span class="step-label">TOOL 01</span>
+              <h2>Create a QR code</h2>
+              <p>Turn a link, text, or other information into a QR code.</p>
+            </div>
+            <span class="card-icon" aria-hidden="true">▦</span>
+          </div>
+
+          <form action="/" method="get" class="tool-form">
+            <div class="form-group">
+              <label for="data">Text or URL</label>
+              <textarea
+                id="data"
+                name="data"
+                rows="4"
+                maxlength="5000"
+                placeholder="https://example.com"
+                required
+              >
+{{ data }}</textarea
+              >
+              <div class="field-hint">
+                <span>Enter a website, message, or any text.</span>
+                <span>Max 5,000 characters</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="size">QR code size</label>
+              <!-- prettier-ignore -->
+              <select id="size" name="size">
+                {% for n in [5, 8, 10, 12, 15, 20, 30, 40] %}
+                <option value="{{ n }}" {% if size|int == n %}selected{% endif %}>
+                  {{ n }} px
+                </option>
+                {% endfor %}
+              </select>
+              <p class="field-hint">
+                Larger values produce a larger QR code image.
+              </p>
+            </div>
+
+            <div class="color-grid">
+              <div class="form-group">
+                <label for="dark_color">QR code color</label>
+                <div class="color-control">
+                  <input
+                    type="color"
+                    id="dark_color"
+                    name="dark_color"
+                    value="{{ dark_color }}"
+                  />
+                  <span id="dark-color-value">{{ dark_color }}</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="light_color">Background color</label>
+                <div class="color-control">
+                  <input
+                    type="color"
+                    id="light_color"
+                    name="light_color"
+                    value="{{ light_color }}"
+                  />
+                  <span id="light-color-value">{{ light_color }}</span>
+                </div>
+              </div>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <button type="submit" class="button button-primary">
+              Generate QR code
+              <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          {% if image_url %}
+          <div class="result-panel">
+            <div class="result-heading">
+              <h3>Your QR code is ready</h3>
+              <p>Scan it with your phone's camera to test it.</p>
+            </div>
+
+            <div class="qr-preview">
+              <img
+                src="{{ image_url }}"
+                alt="Generated QR code"
+                class="qr-image"
+              />
+            </div>
+
+            <a
+              href="{{ image_url }}&amp;download=1"
+              class="button button-secondary"
+              download="qrcode.png"
+            >
+              <span aria-hidden="true">↓</span>
+              Download PNG
+            </a>
+          </div>
+          {% endif %}
+        </section>
+
+        <!-- QR code decoder -->
+        <section class="tool-card" id="decoder">
+          <div class="card-heading">
+            <div>
+              <span class="step-label">TOOL 02</span>
+              <h2>Decode a QR code</h2>
+              <p>
+                Upload an image to extract the information stored in its QR
+                code.
+              </p>
+            </div>
+            <span class="card-icon" aria-hidden="true">⌕</span>
+          </div>
+
+          <form
+            action="/decode"
+            method="post"
+            enctype="multipart/form-data"
+            class="tool-form"
+          >
+            <div class="form-group">
+              <label for="file">QR code image</label>
+
+              <label for="file" class="upload-area">
+                <span class="upload-icon" aria-hidden="true">↑</span>
+                <span class="upload-title">Choose an image</span>
+                <span class="upload-description">
+                  PNG, JPEG, or another supported image format
+                </span>
+                <span id="file-name" class="file-name">No file selected</span>
+              </label>
+
+              <input
+                type="file"
+                id="file"
+                name="file"
+                accept="image/*"
+                required
+                class="file-input"
+              />
+
+              <p class="field-hint">Maximum file size: 10 MB.</p>
+            </div>
+
+            {% if decode_error %}
+            <div class="alert alert-error" role="alert">{{ decode_error }}</div>
+            {% endif %}
+
+            <button type="submit" class="button button-primary">
+              Decode QR code
+              <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          {% if decoded_data is not none %}
+          <div class="result-panel">
+            <div class="result-heading">
+              <h3>Decoded successfully</h3>
+              <p>Here is the information found in your QR code.</p>
+            </div>
+
+            <div class="decoded-result">
+              <pre id="decoded-text">{{ decoded_data }}</pre>
+            </div>
+
+            {% if decoded_data.startswith('https://') or
+            decoded_data.startswith('http://') %}
+            <a
+              href="{{ decoded_data }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="button button-secondary"
+            >
+              Open link
+              <span aria-hidden="true">↗</span>
+            </a>
+            {% endif %}
+
+            <button
+              type="button"
+              id="copy-button"
+              class="button button-secondary"
+            >
+              Copy decoded text
+            </button>
+            <span id="copy-status" class="field-hint" aria-live="polite"></span>
+          </div>
+          {% endif %}
+        </section>
+      </div>
+
+      <section class="features">
+        <div class="feature">
+          <span class="feature-icon" aria-hidden="true">⚡</span>
+          <h3>Fast generation</h3>
+          <p>
+            Create QR codes directly in your browser workflow without an
+            account.
+          </p>
+        </div>
+
+        <div class="feature">
+          <span class="feature-icon" aria-hidden="true">◈</span>
+          <h3>Custom colors</h3>
+          <p>Choose foreground and background colors for your QR code.</p>
+        </div>
+
+        <div class="feature">
+          <span class="feature-icon" aria-hidden="true">✓</span>
+          <h3>Easy decoding</h3>
+          <p>Extract readable information from a QR code image.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <a href="/" class="brand footer-brand">
+          <span class="brand-icon" aria-hidden="true">▦</span>
+          <span>QR Code Studio</span>
+        </a>
+        <p>Simple tools for everyday tasks.</p>
+      </div>
+    </footer>
+
+    <script>
+      // Display the selected QR code colors.
+      const darkColorInput = document.getElementById("dark_color");
+      const lightColorInput = document.getElementById("light_color");
+      const darkColorValue = document.getElementById("dark-color-value");
+      const lightColorValue = document.getElementById("light-color-value");
+
+      if (darkColorInput && darkColorValue) {
+        darkColorInput.addEventListener("input", function () {
+          darkColorValue.textContent = this.value.toUpperCase();
+        });
+      }
+
+      if (lightColorInput && lightColorValue) {
+        lightColorInput.addEventListener("input", function () {
+          lightColorValue.textContent = this.value.toUpperCase();
+        });
+      }
+
+      // Display the selected upload filename.
+      const fileInput = document.getElementById("file");
+      const fileName = document.getElementById("file-name");
+
+      if (fileInput && fileName) {
+        fileInput.addEventListener("change", function () {
+          if (this.files && this.files.length > 0) {
+            fileName.textContent = this.files[0].name;
+          } else {
+            fileName.textContent = "No file selected";
+          }
+        });
+      }
+
+      // Copy decoded QR code content.
+      const copyButton = document.getElementById("copy-button");
+      const decodedText = document.getElementById("decoded-text");
+      const copyStatus = document.getElementById("copy-status");
+
+      if (copyButton && decodedText) {
+        copyButton.addEventListener("click", async function () {
+          try {
+            await navigator.clipboard.writeText(decodedText.textContent);
+            copyStatus.textContent = "Copied to clipboard.";
+          } catch (error) {
+            copyStatus.textContent =
+              "Copy failed. Please select and copy the text manually.";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
